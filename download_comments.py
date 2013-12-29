@@ -1,21 +1,15 @@
 import sys
+import re
+import codecs 
 import grequests
 import requests
 import nltk 
-import re
-import codecs 
-
 import nltk.data
 from nltk.tokenize.punkt import PunktWordTokenizer
 
-#NOTE As it stands this kinda sucks because
-#     it gives no hint of progress till right at the end
-#     something about parallell gevent stuff that i wasnt aware of
-
-#replace this with the url of the rest api from @robinhoode
-api = 'http://xxx.xxx.xxx.xxx:hhh/v1'
+from api_path import api 
 api_comments = api + '/comments?page={0}'
-out_file_tmpl = 'comments/page_{0}'
+out_file_tmpl = 'data/comments/page_{0}'
 
 # woops I discovered that not setting this can hammer
 # the server hard enough to break it .. I think?
