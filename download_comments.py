@@ -13,7 +13,7 @@ out_file_tmpl = 'data/comments/page_{0}'
 
 # woops I discovered that not setting this can hammer
 # the server hard enough to break it .. I think?
-MAX_PARALLEL_REQUESTS = 15
+MAX_PARALLEL_REQUESTS = 40
 
 #all the cleverness of nltk.word_tokenizer gets me nowhere so just use a regexp!!
 # # not sure the right way to signify this dependency  
@@ -26,24 +26,24 @@ MAX_PARALLEL_REQUESTS = 15
 # # word tokenizer, only works on sentences, apparently
 
 regexp_tokenizer = nltk.tokenize.RegexpTokenizer(r'(?:[A-Z][.])+|\d[\d,.:\-/\d]*\d|\w+[\w\-\'.&|@:/]*\w+')
+stemmer = nltk.stem.wordnet.WordNetLemmatizer()
 
 def clean_by_tokenize(text):
 	one_line = re.sub("\n", " ", text)
 	# words = [word 
 	# 		for sent in sentence_tokenizer.tokenize(one_line) 
 	# 		for word in nltk.word_tokenize(sent)]
-	words = [word.lower() for word in regexp_tokenizer.tokenize(one_line)]
-	clean_line = " ".join(words)
-	return clean_line + '\n'
+	words = [stemmer.lemmatize(word.strip(), 'v').lower() for word in regexp_tokenizer.tokenize(one_line)]
+	return " ".join(words)
 	
 def call_back(resp):
 	data = resp.json()
 	page_num = data['page']
 	file_name = out_file_tmpl.format(page_num)
-	print "About to tokenize" + file_name
+	print "About to tokenize " + file_name
 	with codecs.open(file_name, 'w', 'utf-8') as outfile:
 		for line in data['comments']:
-			outfile.write(clean_by_tokenize(line['body']))
+			outfile.write(clean_by_tokenize(line['body']) + '\n')
 		
 def parallel_fetch(urls):
     rs = (grequests.get(u) for u in urls)

@@ -6,7 +6,6 @@ from gensim.models.word2vec import Word2Vec
 from numpy import seterr
 
 class CommentCorpus(object):
-    """Iterate over sentences from the Brown corpus (part of NLTK data)."""
     def __init__(self, dirname):
         self.dirname = dirname
 
@@ -46,7 +45,7 @@ if __name__ == "__main__":
     
   # check and process cmdline input
   program = os.path.basename(sys.argv[0])
-  comments_dir = './comments'
+  comments_dir = './data/comments'
   model_file = 'word2vec'
   if len(sys.argv) == 2:
     comments_dir = sys.argv[1]

@@ -5,7 +5,6 @@ import grequests
 import requests
 import nltk 
 import logging
-from nltk.tokenize.punkt import PunktWordTokenizer
 
 from api_path import api 
 api_users = api + '/users?page={0}'
@@ -15,7 +14,7 @@ out_file_tmpl = 'data/users/user_{0}'
 
 # woops I discovered that not setting this can hammer
 # the server hard enough to break it .. I think?
-MAX_PARALLEL_REQUESTS = 15
+MAX_PARALLEL_REQUESTS = 40
 
 #all the cleverness of nltk.word_tokenizer gets me nowhere so just use a regexp!!
 # # not sure the right way to signify this dependency  
@@ -27,6 +26,7 @@ MAX_PARALLEL_REQUESTS = 15
 # sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 # # word tokenizer, only works on sentences, apparently
 
+stemmer = nltk.stem.wordnet.WordNetLemmatizer()
 regexp_tokenizer = nltk.tokenize.RegexpTokenizer(r'(?:[A-Z][.])+|\d[\d,.:\-/\d]*\d|\w+[\w\-\'.&|@:/]*\w+')
 
 def clean_by_tokenize(text):
@@ -34,9 +34,8 @@ def clean_by_tokenize(text):
 	# words = [word 
 	# 		for sent in sentence_tokenizer.tokenize(one_line) 
 	# 		for word in nltk.word_tokenize(sent)]
-	words = [word.lower() for word in regexp_tokenizer.tokenize(one_line)]
-	clean_line = " ".join(words)
-	return clean_line + '\n'
+	words = [stemmer.lemmatize(word.strip(), 'v').lower() for word in regexp_tokenizer.tokenize(one_line)]
+	return " ".join(words)
 	
 def parse_user_comments(resp):
 	print "Status: [%s] URL: %s" % (resp.status_code, resp.url)
@@ -47,7 +46,7 @@ def parse_user_comments(resp):
 	print "About to tokenize to " + file_name
 	with codecs.open(file_name, 'w', 'utf-8') as outfile:
 		for line in data['comments']:
-			outfile.write(clean_by_tokenize(line['body']))
+			outfile.write(clean_by_tokenize(line['body']) + '\n')
 	
 def parse_user_index(resp):
 	print "Status: [%s] URL: %s" % (resp.status_code, resp.url)
